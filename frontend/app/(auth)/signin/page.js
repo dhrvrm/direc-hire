@@ -10,13 +10,39 @@ const Login = () => {
 	const [rememberMe, setRememberMe] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (password !== confirmPassword) {
 			setErrorMessage('Passwords do not match');
 			return;
 		}
 		// Handle successful login here (e.g., API call)
+
+		try {
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						email,
+						password,
+					}),
+				}
+			);
+
+			if (response.ok) {
+				// Handle successful signup
+				window.location.href = '/login';
+			} else {
+				setErrorMessage('Signin failed. Please try again.');
+			}
+		} catch (error) {
+			setErrorMessage('An error occurred. Please try again.');
+		}
+
 		console.log('Email:', email);
 		console.log('Password:', password);
 		console.log('Remember Me:', rememberMe);
@@ -24,7 +50,7 @@ const Login = () => {
 	};
 
 	return (
-		<form className='min-h-screen bg-gray-100 flex items-center justify-center p-4'>
+		<div className='min-h-screen bg-gray-100 flex items-center justify-center p-4'>
 			<div className='max-w-md w-full bg-white rounded-xl shadow-lg p-8'>
 				<h2 className='text-2xl font-bold text-gray-900 mb-6 text-center'>
 					Sign In
@@ -98,7 +124,7 @@ const Login = () => {
 				</form>
 
 				<div className='mt-6 text-center text-sm text-gray-600'>
-					Don't have an account?
+					Don&apos;t have an account?
 					<a
 						href='/signup'
 						className='text-indigo-600 hover:text-indigo-500 font-medium'
@@ -108,7 +134,7 @@ const Login = () => {
 					</a>
 				</div>
 			</div>
-		</form>
+		</div>
 	);
 };
 
