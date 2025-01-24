@@ -19,7 +19,9 @@ const prisma = new PrismaClient({
 });
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "Gmail",
+    host: "smtp.gmail.com",
+    port: 465,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD // Use App Password from Gmail
