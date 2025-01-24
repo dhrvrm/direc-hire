@@ -7,6 +7,8 @@ const http = require("http");
 const { neon } = require("@neondatabase/serverless");
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { body, validationResult } = require('express-validator');
+const { authorizeRoles } = require('../.././middleware/auth');
 
 
 const router = express.Router();
@@ -47,81 +49,171 @@ router.get('/', (req, res) => {
     res.json({ message: 'Server is Running' });
 });
 
-// Sign up route
-router.post('/signup', async (req, res) => {
-    try {
-        const { email, password, role, college, organization } = req.body;
-        console.log(req.body);
-        // Validate role
-        if (!['ADMIN', 'STUDENT', 'RECRUITER'].includes(role)) {
-            return res.status(400).json({ message: 'Invalid role' });
+router.post('/signup',
+    [
+      body('email').isEmail(),
+      body('password').isLength({ min: 6 }),
+      body('role').isIn(['SUPER_ADMIN', 'ADMIN', 'COLLEGE', 'RECRUITER', 'STUDENT'])
+    ],
+    async (req, res) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
         }
-
-        // Check if user already exists
+  
+        const { email, password, role } = req.body;
+  
         const existingUser = await prisma.user.findUnique({
-            where: { email },
+          where: { email }
         });
-
+  
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+          return res.status(400).json({ message: 'User already exists' });
         }
-
-        // Hash password
+  
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create new user
+  
         const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                role,
-                resetToken: null,
-                resetTokenExpiry: null
-                // college,
-                // organization
-            },
+          data: {
+            email,
+            password: hashedPassword,
+            role,
+            resetToken: null,
+            resetTokenExpiry: null
+          }
         });
-        console.log(user);
-        res.status(201).json({ message: 'User created successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating user', error: error.message });
-    }
-});
+  
+        const token = jwt.sign(
+          { userId: user.id, email: user.email, role: user.role },
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+  
+        res.json({ token });
+      } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+      }
+  });
+
+// Sign up route
+
+// router.post('/signup', async (req, res) => {
+//     try {
+//         const { email, password, role, college, organization } = req.body;
+//         console.log(req.body);
+//         // Validate role
+//         if (!['ADMIN', 'STUDENT', 'RECRUITER'].includes(role)) {
+//             return res.status(400).json({ message: 'Invalid role' });
+//         }
+
+//         // Check if user already exists
+//         const existingUser = await prisma.user.findUnique({
+//             where: { email },
+//         });
+
+//         if (existingUser) {
+//             return res.status(400).json({ message: 'User already exists' });
+//         }
+
+//         // Hash password
+//         const hashedPassword = await bcrypt.hash(password, 10);
+
+//         // Create new user
+//         const user = await prisma.user.create({
+//             data: {
+//                 email,
+//                 password: hashedPassword,
+//                 role,
+//                 resetToken: null,
+//                 resetTokenExpiry: null
+//                 // college,
+//                 // organization
+//             },
+//         });
+//         console.log(user);
+//         res.status(201).json({ message: 'User created successfully' });
+//     } catch (error) {
+//         res.status(500).json({ message: 'Error creating user', error: error.message });
+//     }
+// });
 
 // Login route
-router.post('/login', async (req, res) => {
-    try {
+
+router.post('/login',
+    [
+      body('email').isEmail(),
+      body('password').exists()
+    ],
+    async (req, res) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+        }
+  
         const { email, password } = req.body;
-        console.log(req.body);
-        // Find user
+  
         const user = await prisma.user.findUnique({
-            where: { email },
+          where: { email }
         });
-        console.log(user);
+  
         if (!user) {
-            return res.status(400).json({ message: 'User not found' });
+          return res.status(401).json({ message: 'Invalid credentials' });
         }
-
-        // Check password
+  
         const validPassword = await bcrypt.compare(password, user.password);
+  
         if (!validPassword) {
-            return res.status(400).json({ message: 'Invalid password' });
+          return res.status(401).json({ message: 'Invalid credentials' });
         }
-
-        // Generate JWT token
+  
         const token = jwt.sign(
             { userId: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
         );
-        console.log(token);
-        res.json({ token, role: user.role });
-    } catch (error) {
-        res.status(500).json({ message: 'Error logging in', error: error.message });
-    }
-});
+  
+        res.json({ token });
+      } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+      }
+  });
+
+// router.post('/login', async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         console.log(req.body);
+//         // Find user
+//         const user = await prisma.user.findUnique({
+//             where: { email },
+//         });
+//         console.log(user);
+//         if (!user) {
+//             return res.status(400).json({ message: 'User not found' });
+//         }
+
+//         // Check password
+//         const validPassword = await bcrypt.compare(password, user.password);
+//         if (!validPassword) {
+//             return res.status(400).json({ message: 'Invalid password' });
+//         }
+
+//         // Generate JWT token
+//         const token = jwt.sign(
+//             { userId: user.id, email: user.email, role: user.role },
+//             process.env.JWT_SECRET,
+//             { expiresIn: '24h' }
+//         );
+//         console.log(token);
+//         res.json({ token, role: user.role });
+//     } catch (error) {
+//         res.status(500).json({ message: 'Error logging in', error: error.message });
+//     }
+// });
 
 // Logout route
+
 router.post('/logout', authenticateToken, (req, res) => {
     // Since JWT is stateless, we can't invalidate the token on the server side
     // Client should remove the token from their storage

@@ -22,13 +22,15 @@ app.use(express.json());
 
 // Import routes
 const authRoutes = require('./routes/auth/authRoutes');
-// const collegeRoutes = require('./routes/college');
-// const studentRoutes = require('./routes/student');
-// const recruiterRoutes = require('./routes/recruiter');
+const superAdminRoutes = require('./routes/admin/superAdminRoutes');
+const collegeRoutes = require('./routes/college/collegeRoutes');
+const studentRoutes = require('./routes/student/studentRoutes');
+const recruiterRoutes = require('./routes/recruiter/recruiterRoutes');
 // const jobRoutes = require('./routes/jobRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
+app.use('/api/super-admin', superAdminRoutes);
 // app.use('/api/colleges', collegeRoutes);
 // app.use('/api/students', studentRoutes);
 // app.use('/api/recruiters', recruiterRoutes);

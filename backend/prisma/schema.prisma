@@ -10,12 +10,15 @@ generator client {
 model College {
   id              Int         @id @default(autoincrement())
   name            String
+  location        String
+  email           String      @unique
   logo            String?
   brandingColors  String?
   placementPolicy String?
   students        Student[]
   recruiters      Recruiter[]
   jobs            Job[]
+  User            User[]
 }
 
 model User {
@@ -25,14 +28,17 @@ model User {
   role             Role
   student          Student?
   recruiter        Recruiter?
+  college          College[]
   resetToken       String?    @db.Text
   resetTokenExpiry DateTime?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @default(now())
+  
 }
 
 enum Role {
   ADMIN
+  COLLEGE
   STUDENT
   RECRUITER
   SUPER_ADMIN
