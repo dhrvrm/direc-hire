@@ -25,7 +25,7 @@ const authRoutes = require('./routes/auth/authRoutes');
 // const collegeRoutes = require('./routes/college');
 // const studentRoutes = require('./routes/student');
 // const recruiterRoutes = require('./routes/recruiter');
-// const jobRoutes = require('./routes/job');
+// const jobRoutes = require('./routes/jobRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);

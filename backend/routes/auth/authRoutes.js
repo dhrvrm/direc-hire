@@ -51,7 +51,7 @@ router.get('/', (req, res) => {
 router.post('/signup', async (req, res) => {
     try {
         const { email, password, role, college, organization } = req.body;
-
+        console.log(req.body);
         // Validate role
         if (!['ADMIN', 'STUDENT', 'RECRUITER'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
@@ -81,7 +81,7 @@ router.post('/signup', async (req, res) => {
                 // organization
             },
         });
-
+        console.log(user);
         res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error creating user', error: error.message });
@@ -92,12 +92,12 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-
+        console.log(req.body);
         // Find user
         const user = await prisma.user.findUnique({
             where: { email },
         });
-
+        console.log(user);
         if (!user) {
             return res.status(400).json({ message: 'User not found' });
         }
@@ -114,7 +114,7 @@ router.post('/login', async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
-
+        console.log(token);
         res.json({ token, role: user.role });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
