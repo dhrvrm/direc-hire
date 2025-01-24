@@ -1,0 +1,84 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+  }
+  
+  generator client {
+    provider = "prisma-client-js"
+  }
+  
+  model College {
+    id              Int       @id @default(autoincrement())
+    name            String
+    logo            String?
+    brandingColors  String?
+    placementPolicy String?
+    students        Student[]
+    recruiters      Recruiter[]
+    jobs            Job[]
+  }
+  
+  model User {
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    password  String
+    role      Role
+    student   Student?
+    recruiter Recruiter?
+  }
+  
+  enum Role {
+    ADMIN
+    STUDENT
+    RECRUITER
+  }
+  
+  model Student {
+    id         Int      @id @default(autoincrement())
+    userId     Int      @unique
+    user       User     @relation(fields: [userId], references: [id])
+    collegeId  Int
+    college    College  @relation(fields: [collegeId], references: [id])
+    name       String
+    resume     String?
+    applications Application[]
+  }
+  
+  model Recruiter {
+    id        Int      @id @default(autoincrement())
+    userId    Int      @unique
+    user      User     @relation(fields: [userId], references: [id])
+    collegeId Int
+    college   College  @relation(fields: [collegeId], references: [id])
+    company   String
+    jobs      Job[]
+  }
+  
+  model Job {
+    id          Int      @id @default(autoincrement())
+    title       String
+    description String
+    requirements String
+    recruiterId Int
+    recruiter   Recruiter @relation(fields: [recruiterId], references: [id])
+    collegeId   Int
+    college     College   @relation(fields: [collegeId], references: [id])
+    applications Application[]
+  }
+  
+  model Application {
+    id        Int      @id @default(autoincrement())
+    studentId Int
+    student   Student  @relation(fields: [studentId], references: [id])
+    jobId     Int
+    job       Job      @relation(fields: [jobId], references: [id])
+    status    ApplicationStatus
+    createdAt DateTime @default(now())
+  }
+  
+  enum ApplicationStatus {
+    PENDING
+    SHORTLISTED
+    REJECTED
+    ACCEPTED
+  }
