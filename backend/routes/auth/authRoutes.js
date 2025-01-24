@@ -5,6 +5,9 @@ const { PrismaClient } = require('@prisma/client');
 require("dotenv").config();
 const http = require("http");
 const { neon } = require("@neondatabase/serverless");
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
 
 const router = express.Router();
 const prisma = new PrismaClient({
@@ -14,6 +17,15 @@ const prisma = new PrismaClient({
         },
       },
 });
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD // Use App Password from Gmail
+    }
+});
+
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -36,7 +48,7 @@ router.get('/', (req, res) => {
 // Sign up route
 router.post('/signup', async (req, res) => {
     try {
-        const { email, password, role } = req.body;
+        const { email, password, role, college, organization } = req.body;
 
         // Validate role
         if (!['ADMIN', 'STUDENT', 'RECRUITER'].includes(role)) {
@@ -61,6 +73,10 @@ router.post('/signup', async (req, res) => {
                 email,
                 password: hashedPassword,
                 role,
+                resetToken: null,
+                resetTokenExpiry: null
+                // college,
+                // organization
             },
         });
 
@@ -121,6 +137,48 @@ router.get('/admin-only', authenticateToken, (req, res) => {
         return res.status(403).json({ message: 'Access denied. Admin only.' });
     }
     res.json({ message: 'Admin route accessed' });
+});
+
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await prisma.user.findUnique({ where: { email } });
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+        await prisma.user.update({
+            where: { email },
+            data: {
+                resetToken,
+                resetTokenExpiry: tokenExpiry
+            }
+        });
+
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Password Reset Request',
+            html: `
+                <h2>Password Reset Request</h2>
+                <p>Click <a href="${resetUrl}">here</a> to reset your password.</p>
+                <p>This link will expire in 1 hour.</p>
+                <p>If you didn't request this, please ignore this email.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ message: 'Password reset email sent' });
+    } catch (error) {
+        console.error('Email Error:', error);
+        res.status(500).json({ message: 'Error sending reset email', error: error.message });
+    }
 });
 
 module.exports = router;
