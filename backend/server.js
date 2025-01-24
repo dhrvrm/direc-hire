@@ -31,7 +31,7 @@ const recruiterRoutes = require('./routes/recruiter/recruiterRoutes');
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/super-admin', superAdminRoutes);
-// app.use('/api/colleges', collegeRoutes);
+app.use('/api/colleges', collegeRoutes);
 // app.use('/api/students', studentRoutes);
 // app.use('/api/recruiters', recruiterRoutes);
 // app.use('/api/jobs', jobRoutes);

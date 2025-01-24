@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { authorizeRoles } = require('../.././middleware/auth');
+const { authenticateToken, authorizeRoles } = require('../.././middleware/auth');
 const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
 // Create recruiter
-router.post('/recruiters', authorizeRoles('COLLEGE'), async (req, res) => {
+router.post('/recruiters',authenticateToken, authorizeRoles(['COLLEGE','SUPER_ADMIN']), async (req, res) => {
   try {
     const { name, company, email } = req.body;
     const collegeAdmin = await prisma.college.findUnique({
@@ -38,7 +38,7 @@ router.post('/recruiters', authorizeRoles('COLLEGE'), async (req, res) => {
 });
 
 // Get college recruiters
-router.get('/recruiters', authorizeRoles('COLLEGE'), async (req, res) => {
+router.get('/recruiters', authenticateToken, authorizeRoles(['COLLEGE','SUPER_ADMIN']), async (req, res) => {
   try {
     const collegeAdmin = await prisma.college.findUnique({
       where: { adminId: req.user.id }
@@ -62,7 +62,7 @@ router.get('/recruiters', authorizeRoles('COLLEGE'), async (req, res) => {
 });
 
 // Create student
-router.post('/students', authorizeRoles('COLLEGE'), async (req, res) => {
+router.post('/students', authenticateToken, authorizeRoles(['COLLEGE','SUPER_ADMIN']), async (req, res) => {
   try {
     const { name, course, email } = req.body;
     const collegeAdmin = await prisma.college.findUnique({
@@ -93,7 +93,7 @@ router.post('/students', authorizeRoles('COLLEGE'), async (req, res) => {
 });
 
 // Get college students
-router.get('/students', authorizeRoles('COLLEGE'), async (req, res) => {
+router.get('/students', authenticateToken, authorizeRoles(['COLLEGE','SUPER_ADMIN']), async (req, res) => {
   try {
     const collegeAdmin = await prisma.college.findUnique({
       where: { adminId: req.user.id }
@@ -115,3 +115,5 @@ router.get('/students', authorizeRoles('COLLEGE'), async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+module.exports = router;
