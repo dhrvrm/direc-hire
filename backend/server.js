@@ -13,14 +13,14 @@ app.use(cors());
 app.use(express.json());
 
 // Import routes
-// const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth/authRoutes');
 // const collegeRoutes = require('./routes/college');
 // const studentRoutes = require('./routes/student');
 // const recruiterRoutes = require('./routes/recruiter');
 // const jobRoutes = require('./routes/job');
 
 // Use routes
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/colleges', collegeRoutes);
 // app.use('/api/students', studentRoutes);
 // app.use('/api/recruiters', recruiterRoutes);
