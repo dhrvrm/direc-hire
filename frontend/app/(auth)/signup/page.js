@@ -40,7 +40,8 @@ const SignUp = () => {
 
 			if (response.ok) {
 				// Handle successful signup
-				window.location.href = '/login';
+				console.log('Signup successful');
+				window.location.href = '/signin';
 			} else {
 				setErrorMessage('Signup failed. Please try again.');
 			}

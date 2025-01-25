@@ -35,7 +35,7 @@ const Login = () => {
 
 			if (response.ok) {
 				// Handle successful signup
-				window.location.href = '/login';
+				window.location.href = '/jobs';
 			} else {
 				setErrorMessage('Signin failed. Please try again.');
 			}

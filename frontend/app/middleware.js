@@ -1,7 +1,7 @@
 // import { NextResponse } from 'next/server';
 // import { verify } from 'jsonwebtoken';
 
-// const JWT_SECRET = process.env.JWT_SECRET;
+// const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET;
 
 // export function middleware(req) {
 // 	const token = req.cookies.get('auth_token')?.value;
